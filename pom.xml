@@ -6,7 +6,7 @@
 
     <groupId>dev.wassim-tahraoui</groupId>
     <artifactId>tx-core</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
 	<name>TXCore - Core TX Library</name>
 	<description>This library contains all the core functionalities and utilities for all the other TX libraries.</description>
