@@ -1,4 +1,4 @@
-package com.tahraoui.core.io;
+package com.tahraoui.txcore.io;
 
 import java.io.Serializable;
 

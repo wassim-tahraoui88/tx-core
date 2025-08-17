@@ -1,4 +1,4 @@
-package com.tahraoui.core;
+package com.tahraoui.txcore;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -24,7 +24,9 @@ public class TXConfig {
 	//region Properties String Caches
 	private static final String CONFIG_PATH = "application.properties";
 	private static final String KEY_APP_NAME = "app.name", KEY_APP_VERSION = "app.version", KEY_APP_AUTHOR = "app.author",
-			KEY_DEBUG_ENABLED = "core.debug.enabled", KEY_DEBUG_LEVEL = "core.debug.level", KEY_DEBUG_FILE = "core.debug.file";
+			KEY_DEBUG_ENABLED = "tx-core.debug.enabled", KEY_DEBUG_LEVEL = "tx-core.debug.level",
+			// TODO: Add a property to set the debug file path
+			KEY_DEBUG_FILE = "tx-core.debug.file";
 	//endregion
 
 	private final Preferences prefs;
