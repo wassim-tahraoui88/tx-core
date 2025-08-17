@@ -109,6 +109,7 @@
 		        <extensions>true</extensions>
 		        <configuration>
 			        <publishingServerId>central</publishingServerId>
+			        <deploymentName>TXCore</deploymentName>
 		        </configuration>
 	        </plugin>
         </plugins>
