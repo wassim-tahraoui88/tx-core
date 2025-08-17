@@ -1,0 +1,29 @@
+<Configuration status="warn">
+    <Properties>
+        <Property name="appName">com.tahraoui</Property>
+        <Property name="logDir">${sys:user.home}\log4j2\${appName}\logs</Property>
+        <Property name="fileName">${logDir}\current.log</Property>
+        <Property name="filePattern">${logDir}\%d{yyyy-MM-dd}.log</Property>
+    </Properties>
+    <Appenders>
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout disableAnsi="false">
+                <pattern>[%d{yyyy-MM-dd HH:mm:ss}] (%t) %highlight{%-5level %logger{36} - %msg}%n</pattern>
+            </PatternLayout>
+        </Console>
+        <RollingFile name="file" fileName="${fileName}" filePattern="${filePattern}" append="true">
+            <PatternLayout disableAnsi="false">
+                <pattern>[%d{yyyy-MM-dd HH:mm:ss}] (%t) %highlight{%-5level %logger{36} - %msg}%n</pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+            </Policies>
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+        <Root level="trace">
+            <AppenderRef ref="console"/>
+            <AppenderRef ref="file"/>
+        </Root>
+    </Loggers>
+</Configuration>
