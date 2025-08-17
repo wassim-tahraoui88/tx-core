@@ -13,7 +13,7 @@ import java.util.prefs.Preferences;
 public class TXConfig {
 
 	private static final Logger LOGGER = LogManager.getLogger(TXConfig.class);
-	private static final String LOGGER_PACKAGE = "com.tahraoui.core";
+	private static final String LOGGER_PACKAGE = "com.tahraoui.txcore";
 
 	private static TXConfig instance;
 	public static TXConfig getInstance() {
@@ -121,9 +121,36 @@ public class TXConfig {
 	//endregion
 
 	//region App Properties
+	/**
+	 * Returns the value of the `app.name` property from the application properties file.
+	 * If the property is not found, it throws a RuntimeException.
+	 * This property is used to identify the application name.
+	 *
+	 * @return The application name.
+	 */
 	public String getAppName() { return loadStringProperty(KEY_APP_NAME); }
+	/**
+	 * Returns a lowercase hyphenated format of the application name (`app-project-name`).
+	 *
+	 * @return a lowercase hyphenated format of the application name.
+	 */
 	public String getAppProjectName() { return getAppName().toLowerCase().replace(" ", "-"); }
+	/**
+	 * Returns the value of the `app.version` property from the application properties file.
+	 * If the property is not found, it throws a RuntimeException.
+	 * This property is used to identify the application version.
+	 *
+	 * @return The application version.
+	 */
 	public String getAppVersion() { return loadStringProperty(KEY_APP_VERSION); }
+	/**
+	 * Returns the value of the `app.author` property from the application properties file.
+	 * If the property is not found, it throws a RuntimeException.
+	 * This property is used to identify the application author.
+	 * If you don't have an author, you can set it to "Unknown".
+	 *
+	 * @return The application author.
+	 */
 	public String getAppAuthor() { return loadStringProperty(KEY_APP_AUTHOR); }
 	//endregion
 
