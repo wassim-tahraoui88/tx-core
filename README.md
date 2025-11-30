@@ -16,7 +16,7 @@ You can install the package with maven by adding the following dependency to you
 <dependency>
 	<groupId>dev.wassim-tahraoui</groupId>
 	<artifactId>tx-core</artifactId>
-	<version>1.0.2</version>
+	<version>1.0.3</version>
 </dependency>
 ```
 
