@@ -3,12 +3,17 @@ package com.tahraoui.txcore.collections;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public class ObservableList<T> {
+public class ObservableList<T> implements List<T> {
 
 	public interface Listener<T> {
 		void onItemAdded(T item);
@@ -16,7 +21,7 @@ public class ObservableList<T> {
 		void onItemUpdated(int index, T oldItem, T newItem);
 		void onItemRemoved(T item);
 		void onListCleared();
-		void onBulkUpdate(List<T> added, List<T> removed);
+		void onBulkUpdate(Collection<T> added, Collection<T> removed);
 	}
 
 	public static class ListenerAdapter<T> implements Listener<T> {
@@ -25,7 +30,7 @@ public class ObservableList<T> {
 		@Override public void onItemUpdated(int index, T oldItem, T newItem) {}
 		@Override public void onItemRemoved(T item) {}
 		@Override public void onListCleared() {}
-		@Override public void onBulkUpdate(List<T> added, List<T> removed) {}
+		@Override public void onBulkUpdate(Collection<T> added, Collection<T> removed) {}
 	}
 
 	private final List<T> backing;
@@ -60,7 +65,7 @@ public class ObservableList<T> {
 		for (var listener : listeners)
 			listener.onListCleared();
 	}
-	private void onBulkUpdate(List<T> added, List<T> removed) {
+	private void onBulkUpdate(Collection<T> added, Collection<T> removed) {
 		for (var listener : listeners)
 			listener.onBulkUpdate(added, removed);
 	}
@@ -72,24 +77,34 @@ public class ObservableList<T> {
 			return backing.get(index);
 		}
 	}
-	public void add(T item) {
+	public boolean add(T item) {
 		synchronized (lock) {
 			backing.add(item);
 		}
 		onItemAdded(item);
+		return true;
 	}
-	public void insert(int index, T item) {
+	public void add(int index, T element) {
 		synchronized (lock) {
-			backing.add(index, item);
+			backing.add(index, element);
 		}
-		onItemInserted(index, item);
+		onItemInserted(index, element);
 	}
-	public void update(int index, T newItem) {
-		T oldItem;
+	public T set(int index, T newElement) {
+		T oldElement;
 		synchronized (lock) {
-			oldItem = backing.set(index, newItem);
+			oldElement = backing.set(index, newElement);
 		}
-		onItemUpdated(index, oldItem, newItem);
+		onItemUpdated(index, oldElement, newElement);
+		return oldElement;
+	}
+	public boolean remove(Object o) {
+		boolean removed;
+		synchronized (lock) {
+			removed = backing.remove(o);
+		}
+		if (removed) onItemRemoved((T) o);
+		return removed;
 	}
 	public T remove (int index) {
 		T removedItem;
@@ -108,30 +123,50 @@ public class ObservableList<T> {
 	//endregion
 
 	//region Bulk Operations
-	public void addAll(Collection<T> items) {
+	public boolean addAll(Collection<? extends T> items) {
 		synchronized (lock) {
 			backing.addAll(items);
 		}
-		var addedItems = List.copyOf(items);
-		onBulkUpdate(addedItems, List.of());
+		onBulkUpdate(List.copyOf(items), List.of());
+		return true;
 	}
-	public void removeIf(Predicate<T> filter) {
+	public boolean addAll(int index, Collection<? extends T> c) {
+		synchronized (lock) {
+			backing.addAll(index, c);
+		}
+		onBulkUpdate(List.copyOf(c), List.of());
+		return true;
+	}
+	public boolean removeAll(Collection<?> c) {
+		List<T> removedItems;
+		synchronized (lock) {
+			removedItems = backing.stream()
+					.filter(c::contains)
+					.collect(Collectors.toList());
+			if (!removedItems.isEmpty()) backing.removeAll(c);
+		}
+		if (!removedItems.isEmpty()) onBulkUpdate(List.of(), removedItems);
+		return true;
+	}
+	public boolean removeIf(Predicate<? super T> filter) {
 		List<T> removedItems;
 		synchronized (lock) {
 			removedItems = backing.stream().filter(filter).collect(Collectors.toList());
 			if (!removedItems.isEmpty()) backing.removeIf(filter);
 		}
 		if (!removedItems.isEmpty()) onBulkUpdate(List.of(), removedItems);
+		return true;
 	}
-	public void replaceAll(Collection<T> items) {
+	public boolean retainAll(Collection<?> c) {
 		List<T> removedItems;
 		synchronized (lock) {
-			removedItems = List.copyOf(backing);
-			backing.clear();
-			backing.addAll(items);
+			removedItems = backing.stream()
+					.filter(item -> !c.contains(item))
+					.collect(Collectors.toList());
+			if (!removedItems.isEmpty()) backing.retainAll(new HashSet<>(c));
 		}
-		var addedItems = List.copyOf(items);
-		onBulkUpdate(addedItems, removedItems);
+		if (!removedItems.isEmpty()) onBulkUpdate(List.of(), removedItems);
+		return true;
 	}
 	//endregion
 
@@ -144,6 +179,67 @@ public class ObservableList<T> {
 	public boolean isEmpty() {
 		synchronized (lock) {
 			return backing.isEmpty();
+		}
+	}
+	public boolean contains(Object element) {
+		synchronized (lock) {
+			return backing.contains(element);
+		}
+	}
+	public boolean containsAll(Collection<?> c) {
+		synchronized (lock) {
+			for (var e : c) {
+				if (!contains(e)) return false;
+			}
+			return true;
+		}
+	}
+	public int indexOf(Object element) {
+		synchronized (lock) {
+			return backing.indexOf(element);
+		}
+	}
+	public int lastIndexOf(Object element) {
+		synchronized (lock) {
+			return backing.lastIndexOf(element);
+		}
+	}
+	//endregion
+
+	//region Views
+	public Stream<T> stream() {
+		synchronized (lock) {
+			return backing.stream();
+		}
+	}
+	public Iterator<T> iterator() {
+		synchronized (lock) {
+			return new ArrayList<>(backing).iterator();
+		}
+	}
+	public Object[] toArray() {
+		synchronized (lock) {
+			return backing.toArray();
+		}
+	}
+	public <T1> T1[] toArray(T1[] a) {
+		synchronized (lock) {
+			return backing.toArray(a);
+		}
+	}
+	public ListIterator<T> listIterator() {
+		synchronized (lock) {
+			return backing.listIterator();
+		}
+	}
+	public ListIterator<T> listIterator(int index) {
+		synchronized (lock) {
+			return backing.listIterator(index);
+		}
+	}
+	public List<T> subList(int fromIndex, int toIndex) {
+		synchronized (lock) {
+			return backing.subList(fromIndex, toIndex);
 		}
 	}
 	public List<T> asUnmodifiable() {
