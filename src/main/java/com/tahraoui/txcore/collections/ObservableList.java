@@ -157,6 +157,15 @@ public class ObservableList<T> implements List<T> {
 		if (!removedItems.isEmpty()) onBulkUpdate(List.of(), removedItems);
 		return true;
 	}
+	public void replaceAll(Collection<? extends T> items) {
+		List<T> removedItems;
+		synchronized (lock) {
+			removedItems = new ArrayList<>(backing);
+			backing.clear();
+			backing.addAll(items);
+		}
+		onBulkUpdate(List.copyOf(items), removedItems);
+	}
 	public boolean retainAll(Collection<?> c) {
 		List<T> removedItems;
 		synchronized (lock) {
