@@ -16,14 +16,11 @@ public class TXFileUtils {
 			EXTENSION_PDF = "pdf", EXTENSION_DOCX = "docx", EXTENSION_TXT = "txt",
 			EXTENSION_ZIP = "zip", EXTENSION_RAR = "rar", EXTENSION_TAR = "tar";
 
-	public static String concatPaths(String... paths) {
-		var separator = "/";
-		var sb = new StringBuilder();
-		for (var path : paths) {
-			if (!sb.isEmpty() && !sb.toString().endsWith(separator)) sb.append(separator);
-			sb.append(path.startsWith(separator) ? path.substring(1) : path);
-		}
-		return sb.toString();
+	public static String normalizePath(String path) {
+		if (path == null || path.isBlank()) return "";
+		if (!path.startsWith("/")) path = "/" + path;
+		if (path.endsWith("/")) path = path.substring(0, path.length() - 1);
+		return path;
 	}
 
 	/**
